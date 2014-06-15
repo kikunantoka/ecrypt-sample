@@ -61,6 +61,30 @@ class TestsController < ApplicationController
     end
   end
 
+  # 暗号化
+  def crypt(password, salt)
+    cipher = OpenSSL::Cipher::Cipher.new("AES-256-CBC")
+    cipher.encrypt
+    cipher.pkcs5_keyivgen(SECRET_KEY, salt)
+    cipher.update(password) + cipher.final
+  end
+
+  # 復号化
+  def decrypt(password, salt)
+    cipher = OpenSSL::Cipher::Cipher.new("AES-256-CBC")
+    cipher.decrypt
+    cipher.pkcs5_keyivgen(SECRET_KEY, salt)
+    cipher.update(password) + cipher.final
+  end
+
+  # Salt生成
+  def new_salt
+    source = ("a".."z").to_a + ("A".."Z").to_a + (0..9).to_a + ["_","-","."]
+    key=""
+    16.times{ key+= source[rand(source.size)].to_s }
+    return key
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_test
