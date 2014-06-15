@@ -1,6 +1,8 @@
 class TestsController < ApplicationController
   before_action :set_test, only: [:show, :edit, :update, :destroy]
 
+  SECRET_KEY = "hoge"
+
   # GET /tests
   # GET /tests.json
   def index
@@ -24,7 +26,11 @@ class TestsController < ApplicationController
   # POST /tests
   # POST /tests.json
   def create
-    @test = Test.new(test_params)
+    @origin = test_params[:origin]
+    @salt = new_salt
+    @encrypted = crypt(@origin,@salt)
+    @deceypted = decrypt(@encrypted,@salt)
+    @test = Test.new(origin:@origin, encrypted:@encrypted, salt:@salt, deceypted:@deceypted)
 
     respond_to do |format|
       if @test.save
@@ -81,7 +87,7 @@ class TestsController < ApplicationController
   def new_salt
     source = ("a".."z").to_a + ("A".."Z").to_a + (0..9).to_a + ["_","-","."]
     key=""
-    16.times{ key+= source[rand(source.size)].to_s }
+    8.times{ key+= source[rand(source.size)].to_s }
     return key
   end
 
